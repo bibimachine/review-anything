@@ -18,15 +18,26 @@ class ReviewViewModel(private val repository: ReviewRepository) : ViewModel() {
     private val _finished = MutableStateFlow(false)
     val finished: StateFlow<Boolean> = _finished
 
+    private val _empty = MutableStateFlow(false)
+    val empty: StateFlow<Boolean> = _empty
+
     private val _stats = MutableStateFlow(ReviewStats())
     val stats: StateFlow<ReviewStats> = _stats
+
+    private val _dailyCount = MutableStateFlow(10)
+    val dailyCount: StateFlow<Int> = _dailyCount
+
+    fun setDailyCount(count: Int) {
+        _dailyCount.value = count.coerceIn(1, 100)
+    }
 
     fun loadItems(count: Int) {
         viewModelScope.launch {
             val due = repository.getDueItems(count)
             _items.value = due
             _currentIndex.value = 0
-            _finished.value = due.isEmpty()
+            _finished.value = false
+            _empty.value = due.isEmpty()
             _stats.value = ReviewStats(total = due.size, forget = 0)
         }
     }
@@ -60,6 +71,7 @@ class ReviewViewModel(private val repository: ReviewRepository) : ViewModel() {
         _items.value = emptyList()
         _currentIndex.value = 0
         _finished.value = false
+        _empty.value = false
         _stats.value = ReviewStats()
     }
 

@@ -27,10 +27,17 @@ public class ReviewViewModel : INotifyPropertyChanged
         set { _showAnswer = value; OnPropertyChanged(); }
     }
 
+    private bool _isEmpty;
+    public bool IsEmpty
+    {
+        get => _isEmpty;
+        set { _isEmpty = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsIdle)); }
+    }
+
     public ReviewItem? CurrentItem => Items.Count > CurrentIndex ? Items[CurrentIndex] : null;
     public string ProgressText => Items.Count > 0 ? $"{CurrentIndex + 1} / {Items.Count}" : "";
     public bool IsFinished => Items.Count > 0 && CurrentIndex >= Items.Count;
-    public bool IsIdle => Items.Count == 0;
+    public bool IsIdle => Items.Count == 0 && !IsEmpty;
 
     public ICommand StartCommand { get; }
     public ICommand ShowAnswerCommand { get; }
@@ -44,30 +51,46 @@ public class ReviewViewModel : INotifyPropertyChanged
         ShowAnswerCommand = new RelayCommand(() => ShowAnswer = true);
         RememberCommand = new RelayCommand(async () => await MarkAsync(true));
         ForgetCommand = new RelayCommand(async () => await MarkAsync(false));
-        RestartCommand = new RelayCommand(() => { CurrentIndex = 0; ShowAnswer = false; Items.Clear(); });
+        RestartCommand = new RelayCommand(() => { CurrentIndex = 0; ShowAnswer = false; IsEmpty = false; Items.Clear(); });
     }
 
     private async Task LoadItemsAsync()
     {
         Items.Clear();
-        var items = await _reviewService.GetDueItemsAsync(10);
-        foreach (var item in items) Items.Add(item);
+        IsEmpty = false;
+        try
+        {
+            var items = await _reviewService.GetDueItemsAsync(10);
+            foreach (var item in items) Items.Add(item);
+            IsEmpty = items.Count == 0;
+        }
+        catch
+        {
+            IsEmpty = true;
+        }
         CurrentIndex = 0;
         ShowAnswer = false;
     }
 
     private async Task MarkAsync(bool remembered)
     {
-        var item = CurrentItem;
-        if (item == null) return;
+        try
+        {
+            var item = CurrentItem;
+            if (item == null) return;
 
-        if (remembered)
-            await _reviewService.MarkRememberedAsync(item);
-        else
-            await _reviewService.MarkForgottenAsync(item);
+            if (remembered)
+                await _reviewService.MarkRememberedAsync(item);
+            else
+                await _reviewService.MarkForgottenAsync(item);
 
-        ShowAnswer = false;
-        CurrentIndex++;
+            ShowAnswer = false;
+            CurrentIndex++;
+        }
+        catch
+        {
+            // ignore db errors during review
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

@@ -10,25 +10,63 @@
         <StackPanel MaxWidth="600" HorizontalAlignment="Left">
             <TextBlock Text="⚙️ 设置" FontSize="24" FontWeight="Bold" Margin="0,0,0,24"/>
 
-            <TextBlock Text="模型配置" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <!-- 提供商选择 -->
+            <TextBlock Text="选择 LLM 提供商" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <ComboBox ItemsSource="{Binding Providers}"
+                      SelectedItem="{Binding SelectedProvider}"
+                      DisplayMemberPath="Name"
+                      Padding="8" Margin="0,0,0,16"/>
+
+            <!-- API 配置 -->
             <TextBlock Text="API Base URL" Foreground="#374151" Margin="0,4"/>
-            <TextBox Text="{Binding ApiBaseUrl}" Padding="8" Margin="0,0,0,8"/>
+            <TextBox Text="{Binding ApiBaseUrl, UpdateSourceTrigger=PropertyChanged}" Padding="8" Margin="0,0,0,8"/>
 
             <TextBlock Text="API Key" Foreground="#374151" Margin="0,4"/>
-            <TextBox Text="{Binding ApiKey}" Padding="8" Margin="0,0,0,8"/>
+            <TextBox Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" Padding="8" Margin="0,0,0,8"/>
 
             <TextBlock Text="模型名称" Foreground="#374151" Margin="0,4"/>
-            <TextBox Text="{Binding ModelName}" Padding="8" Margin="0,0,0,8"/>
+            <TextBox Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" Padding="8" Margin="0,0,0,8"/>
 
-            <Separator Margin="0,16"/>
+            <!-- 测试连接 -->
+            <Button Content="测试连接" Padding="16,8" Margin="0,8,0,0"
+                    Command="{Binding TestCommand}" HorizontalAlignment="Left"/>
 
+            <!-- 测试结果 -->
+            <TextBlock Text="{Binding TestResult}" Margin="0,8,0,0" TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding TestResult}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- API 申请指南 -->
+            <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Margin="0,16,0,0" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="{Binding SelectedProvider.Name, StringFormat='📖 {0} API 申请指南'}" FontWeight="SemiBold" Foreground="#1E40AF" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding GuideText}" Foreground="#1D4ED8" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Separator Margin="0,24"/>
+
+            <!-- 复习设置 -->
             <TextBlock Text="复习设置" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8"/>
             <TextBlock Text="每日复习数量" Foreground="#374151" Margin="0,4"/>
-            <TextBox Text="{Binding DailyCount}" Padding="8" Margin="0,0,0,8"/>
+            <TextBox Text="{Binding DailyCount}" Padding="8" Margin="0,0,0,8" Width="120" HorizontalAlignment="Left"/>
 
-            <Button Content="保存设置" Padding="24,12" FontSize="16"
-                    Command="{Binding SaveCommand}" Margin="0,16,0,0"
-                    HorizontalAlignment="Left"/>
+            <!-- 按钮 -->
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,0" HorizontalAlignment="Left">
+                <Button Content="保存配置" Padding="24,12" FontSize="16"
+                        Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
+                <Button Content="暂不配置 LLM" Padding="24,12" FontSize="16"
+                        Command="{Binding SkipCommand}"
+                        Background="Transparent" BorderBrush="#D1D5DB" Foreground="#374151"/>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </Page>

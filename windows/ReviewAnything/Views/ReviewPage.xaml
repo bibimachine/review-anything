@@ -12,17 +12,31 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 空闲状态 -->
+        <!-- 空状态：无笔记 -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Text="📭" FontSize="64" HorizontalAlignment="Center"/>
+            <TextBlock Text="暂无复习内容" FontSize="24" FontWeight="Bold" Margin="0,16" HorizontalAlignment="Center"/>
+            <TextBlock Text="请先上传笔记，系统会为你生成复习卡片" FontSize="14" Foreground="#6B7280"
+                       TextWrapping="Wrap" TextAlignment="Center" MaxWidth="400" Margin="0,0,0,16"/>
+            <Button Content="刷新试试" Padding="24,12" FontSize="16"
+                    Command="{Binding StartCommand}" HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- 空闲状态：有笔记但尚未开始 -->
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Visibility="{Binding IsIdle, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock Text="📚" FontSize="64" HorizontalAlignment="Center"/>
-            <TextBlock Text="准备开始复习" FontSize="24" FontWeight="Bold" Margin="0,16"/>
+            <TextBlock Text="准备开始复习" FontSize="24" FontWeight="Bold" Margin="0,16" HorizontalAlignment="Center"/>
+            <TextBlock Text="点击开始复习，系统会按间隔重复算法为你调度" FontSize="14" Foreground="#6B7280"
+                       Margin="0,0,0,16" HorizontalAlignment="Center"/>
             <Button Content="开始复习" Padding="24,12" FontSize="16"
-                    Command="{Binding StartCommand}"/>
+                    Command="{Binding StartCommand}" HorizontalAlignment="Center"/>
         </StackPanel>
 
-        <!-- 复习中 -->
-        <Grid Grid.Row="1" Visibility="{Binding IsIdle, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+        <!-- 复习中 / 完成 -->
+        <Grid Grid.Row="1"
+              Visibility="{Binding IsIdle, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -42,8 +56,18 @@
                              Value="{Binding CurrentIndex}" Maximum="{Binding Items.Count}"/>
             </Grid>
 
+            <!-- 完成状态 -->
+            <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding IsFinished, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock Text="🎉" FontSize="64" HorizontalAlignment="Center"/>
+                <TextBlock Text="今日复习完成！" FontSize="24" FontWeight="Bold" Margin="0,16" HorizontalAlignment="Center"/>
+                <Button Content="再来一组" Padding="24,12" FontSize="16"
+                        Command="{Binding RestartCommand}" HorizontalAlignment="Center" Margin="0,16"/>
+            </StackPanel>
+
             <!-- 问题卡片 -->
-            <Border Grid.Row="2" Background="#EFF6FF" CornerRadius="12" Padding="32" Margin="0,16">
+            <Border Grid.Row="2" Background="#EFF6FF" CornerRadius="12" Padding="32" Margin="0,16"
+                    Visibility="{Binding IsFinished, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                 <TextBlock Text="{Binding CurrentItem.Question}"
                            FontSize="20" TextWrapping="Wrap"
                            TextAlignment="Center" VerticalAlignment="Center"/>

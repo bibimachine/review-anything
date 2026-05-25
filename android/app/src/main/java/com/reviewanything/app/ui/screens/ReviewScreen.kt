@@ -29,7 +29,9 @@ fun ReviewScreen(
     val items by viewModel.items.collectAsState()
     val currentIndex by viewModel.currentIndex.collectAsState()
     val finished by viewModel.finished.collectAsState()
+    val empty by viewModel.empty.collectAsState()
     val stats by viewModel.stats.collectAsState()
+    val dailyCount by viewModel.dailyCount.collectAsState()
 
     Column(
         modifier = Modifier
@@ -43,10 +45,15 @@ fun ReviewScreen(
 
         // 复习区域
         when {
+            empty && items.isEmpty() -> ReviewEmpty(onStart = { viewModel.loadItems(dailyCount) })
             finished -> ReviewFinished(stats = stats, onRestart = { viewModel.restart() })
-            items.isEmpty() -> ReviewIdle(onStart = { viewModel.loadItems(10) })
+            items.isEmpty() -> ReviewIdle(
+                dailyCount = dailyCount,
+                onDailyCountChange = { viewModel.setDailyCount(it) },
+                onStart = { viewModel.loadItems(dailyCount) }
+            )
             else -> {
-                val item = items.getOrNull(currentIndex) ?: return
+                val item = items.getOrNull(currentIndex) ?: return@Column
                 ReviewCard(
                     item = item,
                     current = currentIndex + 1,
@@ -60,7 +67,57 @@ fun ReviewScreen(
 }
 
 @Composable
-fun ReviewIdle(onStart: () -> Unit) {
+fun ReviewIdle(
+    dailyCount: Int,
+    onDailyCountChange: (Int) -> Unit,
+    onStart: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("📚", style = MaterialTheme.typography.displayLarge)
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("准备开始复习", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("选择每日复习数量后开始", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 每日数量
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text("每日复习", style = MaterialTheme.typography.bodyLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { onDailyCountChange((dailyCount - 5).coerceAtLeast(1)) }) {
+                    Text("−", style = MaterialTheme.typography.titleLarge)
+                }
+                Text(
+                    "$dailyCount",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.widthIn(min = 48.dp),
+                    textAlign = TextAlign.Center
+                )
+                IconButton(onClick = { onDailyCountChange((dailyCount + 5).coerceAtMost(100)) }) {
+                    Text("+", style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
+            Text("开始复习")
+        }
+    }
+}
+
+@Composable
+fun ReviewEmpty(onStart: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -68,12 +125,19 @@ fun ReviewIdle(onStart: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("📚", style = MaterialTheme.typography.displayLarge)
+        Text("📭", style = MaterialTheme.typography.displayLarge)
         Spacer(modifier = Modifier.height(16.dp))
-        Text("准备开始复习", style = MaterialTheme.typography.headlineSmall)
+        Text("暂无复习内容", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "请先上传笔记，系统会为你生成复习卡片",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
         Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = onStart) {
-            Text("开始复习")
+            Text("刷新试试")
         }
     }
 }

@@ -45,95 +45,109 @@ public class UploadViewModel : INotifyPropertyChanged
 
     private async Task UploadAsync()
     {
-        var dialog = new OpenFileDialog
+        try
         {
-            Filter = "ZIP files (*.zip)|*.zip",
-            Title = "选择笔记 ZIP 文件"
-        };
-
-        if (dialog.ShowDialog() != true) return;
-
-        Status = "解压中...";
-        var files = ZipExtractor.Extract(dialog.FileName);
-
-        var allChunks = files.SelectMany(f => MarkdownParser.Parse(f.Content)).ToList();
-        Total = allChunks.Count;
-        Current = 0;
-
-        foreach (var (fileName, content) in files)
-        {
-            var section = fileName.Split('/', '\\').FirstOrDefault() ?? "未分类";
-            var note = new Note
+            var dialog = new OpenFileDialog
             {
-                FilePath = fileName,
-                FileName = Path.GetFileName(fileName),
-                Section = section,
-                Content = content,
-                ContentHash = MarkdownParser.ComputeHash(content)
+                Filter = "ZIP files (*.zip)|*.zip",
+                Title = "选择笔记 ZIP 文件"
             };
-            _db.Notes.Add(note);
-            await _db.SaveChangesAsync();
 
-            var chunks = MarkdownParser.Parse(content);
-            foreach (var chunkData in chunks)
+            if (dialog.ShowDialog() != true) return;
+
+            Status = "解压中...";
+            var files = ZipExtractor.Extract(dialog.FileName);
+            if (files.Count == 0)
             {
-                Current++;
-                Status = $"处理中... {Current}/{Total}";
+                Status = "ZIP 中没有找到 Markdown 文件";
+                return;
+            }
 
-                var chunk = new Chunk
+            var allChunks = files.SelectMany(f => MarkdownParser.Parse(f.Content)).ToList();
+            Total = allChunks.Count;
+            Current = 0;
+
+            foreach (var (fileName, content) in files)
+            {
+                var section = fileName.Split('/', '\\').FirstOrDefault() ?? "未分类";
+                var note = new Note
                 {
-                    NoteId = note.Id,
-                    Content = chunkData.Content,
-                    ContentHash = MarkdownParser.ComputeHash(chunkData.Content),
-                    HeadingPath = chunkData.HeadingPath
+                    FilePath = fileName,
+                    FileName = Path.GetFileName(fileName),
+                    Section = section,
+                    Content = content,
+                    ContentHash = MarkdownParser.ComputeHash(content)
                 };
-                _db.Chunks.Add(chunk);
+                _db.Notes.Add(note);
                 await _db.SaveChangesAsync();
 
-                // LLM 生成 QA
-                var config = _db.Configs.FirstOrDefault();
-                if (config?.ApiKey != null)
+                var chunks = MarkdownParser.Parse(content);
+                foreach (var chunkData in chunks)
                 {
-                    try
+                    Current++;
+                    Status = $"处理中... {Current}/{Total}";
+
+                    var chunk = new Chunk
                     {
-                        var qaList = await _llmService.GenerateQAAsync(
-                            chunkData.Content, chunkData.HeadingPath, config);
-                        foreach (var (q, a) in qaList)
+                        NoteId = note.Id,
+                        Content = chunkData.Content,
+                        ContentHash = MarkdownParser.ComputeHash(chunkData.Content),
+                        HeadingPath = chunkData.HeadingPath
+                    };
+                    _db.Chunks.Add(chunk);
+                    await _db.SaveChangesAsync();
+
+                    // LLM 生成 QA
+                    var config = _db.Configs.FirstOrDefault();
+                    if (config?.ApiKey != null)
+                    {
+                        try
                         {
-                            _db.ReviewItems.Add(new ReviewItem
+                            var qaList = await _llmService.GenerateQAAsync(
+                                chunkData.Content, chunkData.HeadingPath, config);
+                            foreach (var (q, a) in qaList)
                             {
-                                ChunkId = chunk.Id,
-                                Question = q,
-                                Answer = a
-                            });
+                                _db.ReviewItems.Add(new ReviewItem
+                                {
+                                    ChunkId = chunk.Id,
+                                    Question = q,
+                                    Answer = a
+                                });
+                            }
+                        }
+                        catch
+                        {
+                            AddFallbackReviewItem(chunk.Id, chunkData);
                         }
                     }
-                    catch
+                    else
                     {
-                        _db.ReviewItems.Add(new ReviewItem
-                        {
-                            ChunkId = chunk.Id,
-                            Question = $"请解释「{chunkData.HeadingPath}" + "」的核心要点？",
-                            Answer = chunkData.Content[..Math.Min(300, chunkData.Content.Length)],
-                            LlmFailed = true
-                        });
+                        AddFallbackReviewItem(chunk.Id, chunkData);
                     }
+                    await _db.SaveChangesAsync();
                 }
-                else
-                {
-                    _db.ReviewItems.Add(new ReviewItem
-                    {
-                        ChunkId = chunk.Id,
-                        Question = $"请解释「{chunkData.HeadingPath}" + "」的核心要点？",
-                        Answer = chunkData.Content[..Math.Min(300, chunkData.Content.Length)],
-                        LlmFailed = true
-                    });
-                }
-                await _db.SaveChangesAsync();
             }
-        }
 
-        Status = $"上传完成！{files.Count} 个文件，{Total} 个段落";
+            Status = $"上传完成！{files.Count} 个文件，{Total} 个段落";
+        }
+        catch (Exception ex)
+        {
+            Status = $"上传失败: {ex.Message}";
+        }
+    }
+
+    private void AddFallbackReviewItem(int chunkId, ParsedChunk chunkData)
+    {
+        var question = string.IsNullOrWhiteSpace(chunkData.HeadingPath)
+            ? "请解释这段内容的核心要点？"
+            : $"请解释「{chunkData.HeadingPath}」的核心要点？";
+        _db.ReviewItems.Add(new ReviewItem
+        {
+            ChunkId = chunkId,
+            Question = question,
+            Answer = chunkData.Content[..Math.Min(300, chunkData.Content.Length)],
+            LlmFailed = true
+        });
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
