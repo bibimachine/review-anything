@@ -12,6 +12,11 @@ public class AppDbContext : DbContext
     public DbSet<ReviewItem> ReviewItems { get; set; }
     public DbSet<CheckIn> CheckIns { get; set; }
 
+    public AppDbContext()
+    {
+        Database.EnsureCreated();
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         var dbPath = Path.Combine(

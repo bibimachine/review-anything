@@ -1,6 +1,8 @@
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
 from .routers import config, notes, review, sections, checkin
 
@@ -9,10 +11,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Review Anything API", version="1.0.0")
 
-# 配置CORS
+# 配置CORS（开发模式需要，生产模式下前后端同域可不依赖）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,3 +39,9 @@ app.include_router(checkin.router)
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+
+# 挂载前端构建产物（如果存在）
+_frontend_dist = os.path.join(os.path.dirname(__file__), "../../frontend/dist")
+if os.path.isdir(_frontend_dist):
+    app.mount("/", StaticFiles(directory=_frontend_dist, html=True), name="static")

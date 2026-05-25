@@ -39,9 +39,16 @@ public class NotesViewModel : INotifyPropertyChanged
 
     private async void LoadSections()
     {
-        var sections = await _db.Notes.Select(n => n.Section).Distinct().ToListAsync();
-        Sections.Clear();
-        foreach (var s in sections) Sections.Add(s);
+        try
+        {
+            var sections = await _db.Notes.Select(n => n.Section).Distinct().ToListAsync();
+            Sections.Clear();
+            foreach (var s in sections) Sections.Add(s);
+        }
+        catch
+        {
+            // ignore db errors during init
+        }
     }
 
     private async void LoadNotes(string section)

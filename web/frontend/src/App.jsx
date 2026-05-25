@@ -239,6 +239,41 @@ function App() {
           开始复习
         </button>
       </div>
+
+      {/* 使用说明 */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">📖 使用说明</h3>
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">1</div>
+            <div>
+              <p className="font-medium text-gray-900">配置 LLM（可选）</p>
+              <p className="text-sm text-gray-500 mt-0.5">首次打开会弹出配置窗口，填写 DeepSeek / OpenAI 等 API 信息。也可点击「暂不配置」使用本地规则生成复习卡片。</p>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">2</div>
+            <div>
+              <p className="font-medium text-gray-900">上传笔记</p>
+              <p className="text-sm text-gray-500 mt-0.5">切换到「笔记管理」页，拖拽或选择 ZIP 文件上传。支持 Markdown 格式，会自动按标题分块并生成 QA 复习卡片。</p>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">3</div>
+            <div>
+              <p className="font-medium text-gray-900">开始复习</p>
+              <p className="text-sm text-gray-500 mt-0.5">回到「每日复习」页，选择复习范围后点击「开始复习」。系统按间隔重复算法调度，记住/忘记决定下次复习时间。</p>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">4</div>
+            <div>
+              <p className="font-medium text-gray-900">坚持打卡</p>
+              <p className="text-sm text-gray-500 mt-0.5">左侧边栏可以打卡，日历会记录你的复习坚持天数。</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
