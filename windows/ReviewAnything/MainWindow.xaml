@@ -1,0 +1,67 @@
+<Window x:Class="ReviewAnything.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ReviewAnything.ViewModels"
+        Title="Review Anything" Height="800" Width="1200">
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 侧边导航 -->
+        <Border Grid.Column="0" Background="#F3F4F6" BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
+            <StackPanel Margin="0,16">
+                <TextBlock Text="📚 Review Anything" 
+                           FontSize="18" FontWeight="Bold" 
+                           Margin="16,8" Foreground="#111827"/>
+                <Separator Margin="8,0"/>
+
+                <Button Content="📝 每日复习" Margin="8,4" Padding="12,8"
+                        Background="Transparent" BorderThickness="0"
+                        HorizontalContentAlignment="Left"
+                        Command="{Binding NavigateReviewCommand}"/>
+                <Button Content="📁 上传笔记" Margin="8,4" Padding="12,8"
+                        Background="Transparent" BorderThickness="0"
+                        HorizontalContentAlignment="Left"
+                        Command="{Binding NavigateUploadCommand}"/>
+                <Button Content="📂 笔记管理" Margin="8,4" Padding="12,8"
+                        Background="Transparent" BorderThickness="0"
+                        HorizontalContentAlignment="Left"
+                        Command="{Binding NavigateNotesCommand}"/>
+                <Button Content="🔥 打卡" Margin="8,4" Padding="12,8"
+                        Background="Transparent" BorderThickness="0"
+                        HorizontalContentAlignment="Left"
+                        Command="{Binding NavigateCheckInCommand}"/>
+                <Button Content="⚙️ 设置" Margin="8,4" Padding="12,8"
+                        Background="Transparent" BorderThickness="0"
+                        HorizontalContentAlignment="Left"
+                        Command="{Binding NavigateSettingsCommand}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 内容区 -->
+        <ContentControl Grid.Column="1" Content="{Binding CurrentView}">
+            <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type vm:ReviewViewModel}">
+                    <Frame Source="Views/ReviewPage.xaml"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:UploadViewModel}">
+                    <Frame Source="Views/UploadPage.xaml"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:NotesViewModel}">
+                    <Frame Source="Views/NotesPage.xaml"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:CheckInViewModel}">
+                    <Frame Source="Views/CheckInPage.xaml"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                    <Frame Source="Views/SettingsPage.xaml"/>
+                </DataTemplate>
+            </ContentControl.Resources>
+        </ContentControl>
+    </Grid>
+</Window>

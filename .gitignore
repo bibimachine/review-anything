@@ -1,0 +1,58 @@
+# === Web ===
+web/backend/.venv/
+web/backend/__pycache__/
+web/backend/*.db
+web/backend/*.db-journal
+web/backend/*.db-wal
+web/backend/*.db-shm
+web/backend/uploads/
+web/frontend/node_modules/
+web/frontend/dist/
+web/test_notes/
+web/*.zip
+
+# === Android ===
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/app/debug/
+android/local.properties
+android/*.iml
+android/.idea/
+android/captures/
+android/*.hprof
+
+# === Windows ===
+windows/**/bin/
+windows/**/obj/
+windows/**/*.user
+windows/**/*.suo
+windows/.vs/
+windows/packages/
+
+# === Shared ===
+shared/assets/*.png
+shared/assets/*.jpg
+
+# === IDE ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Logs ===
+*.log
+nohup.out
+
+# === Temp ===
+*.tmp
+*.temp
+tmp/
+temp/

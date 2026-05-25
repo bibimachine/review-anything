@@ -1,0 +1,1005 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Review Anything API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/config/": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get Config",
+        "operationId": "get_config_api_config__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Config Api Config  Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Create Or Update Config",
+        "operationId": "create_or_update_config_api_config__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Delete Config",
+        "description": "删除模型配置",
+        "operationId": "delete_config_api_config__delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config/test": {
+      "post": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Test Config Connection",
+        "description": "测试 LLM API 连接是否正常",
+        "operationId": "test_config_connection_api_config_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/upload-cancel": {
+      "post": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Upload Cancel",
+        "description": "取消当前上传/处理任务",
+        "operationId": "upload_cancel_api_notes_upload_cancel_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/upload-progress": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Upload Progress",
+        "description": "SSE 推送上传/QA 生成进度",
+        "operationId": "upload_progress_api_notes_upload_progress_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/upload": {
+      "post": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Upload Notes",
+        "description": "上传笔记文件或zip包，支持指定板块",
+        "operationId": "upload_notes_api_notes_upload_post",
+        "parameters": [
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Section"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_notes_api_notes_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/sections": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Get Sections",
+        "description": "获取所有板块",
+        "operationId": "get_sections_api_notes_sections_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/section/{section_name}": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Get Notes By Section",
+        "description": "获取某板块下的所有笔记",
+        "operationId": "get_notes_by_section_api_notes_section__section_name__get",
+        "parameters": [
+          {
+            "name": "section_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Section Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/{note_id}": {
+      "delete": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Delete Note",
+        "description": "删除笔记及其所有分块和复习项",
+        "operationId": "delete_note_api_notes__note_id__delete",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Update Note",
+        "description": "更新笔记：重新上传单个markdown文件替换原有内容",
+        "operationId": "update_note_api_notes__note_id__put",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_update_note_api_notes__note_id__put"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/regenerate-qa": {
+      "post": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Regenerate Qa",
+        "description": "使用当前模型重新生成所有 QA。\n如果指定了 section，只更新该板块下的笔记。\n返回更新统计。",
+        "operationId": "regenerate_qa_api_notes_regenerate_qa_post",
+        "parameters": [
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/next": {
+      "get": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Get Next Review",
+        "description": "获取下一个要复习的条目",
+        "operationId": "get_next_review_api_review_next_get",
+        "parameters": [
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/batch": {
+      "get": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Get Batch Review",
+        "description": "批量获取复习条目",
+        "operationId": "get_batch_review_api_review_batch_get",
+        "parameters": [
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Section"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Count"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/{item_id}/action": {
+      "post": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Review Action",
+        "description": "处理复习动作",
+        "operationId": "review_action_api_review__item_id__action_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/stats": {
+      "get": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Get Stats",
+        "description": "获取复习统计",
+        "operationId": "get_stats_api_review_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sections/": {
+      "get": {
+        "tags": [
+          "sections"
+        ],
+        "summary": "List Sections",
+        "description": "获取所有板块（包括手动创建的）",
+        "operationId": "list_sections_api_sections__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sections"
+        ],
+        "summary": "Create Section",
+        "description": "手动创建板块",
+        "operationId": "create_section_api_sections__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sections/rename": {
+      "post": {
+        "tags": [
+          "sections"
+        ],
+        "summary": "Rename Section",
+        "description": "重命名板块（会同时更新 Section 表和 Note 表中的板块名）",
+        "operationId": "rename_section_api_sections_rename_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionRename"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sections/{section_name}": {
+      "delete": {
+        "tags": [
+          "sections"
+        ],
+        "summary": "Delete Section",
+        "description": "删除板块及其下的所有笔记、分块和复习项",
+        "operationId": "delete_section_api_sections__section_name__delete",
+        "parameters": [
+          {
+            "name": "section_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Section Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/checkin/": {
+      "get": {
+        "tags": [
+          "checkin"
+        ],
+        "summary": "Get Checkin Status",
+        "description": "获取打卡状态：今日是否打卡 + 连续天数 + 所有打卡日期",
+        "operationId": "get_checkin_status_api_checkin__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "checkin"
+        ],
+        "summary": "Checkin",
+        "description": "今日打卡",
+        "operationId": "checkin_api_checkin__post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/checkin/calendar/{year}/{month}": {
+      "get": {
+        "tags": [
+          "checkin"
+        ],
+        "summary": "Get Month Calendar",
+        "description": "获取某月的打卡情况",
+        "operationId": "get_month_calendar_api_checkin_calendar__year___month__get",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year"
+            }
+          },
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_update_note_api_notes__note_id__put": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_update_note_api_notes__note_id__put"
+      },
+      "Body_upload_notes_api_notes_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_notes_api_notes_upload_post"
+      },
+      "ConfigCreate": {
+        "properties": {
+          "api_base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Base Url"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name",
+            "default": "gpt-3.5-turbo"
+          },
+          "daily_review_count": {
+            "type": "integer",
+            "title": "Daily Review Count",
+            "default": 10
+          }
+        },
+        "type": "object",
+        "title": "ConfigCreate"
+      },
+      "ConfigResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "api_base_url": {
+            "type": "string",
+            "title": "Api Base Url"
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name"
+          },
+          "daily_review_count": {
+            "type": "integer",
+            "title": "Daily Review Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "api_base_url",
+          "model_name",
+          "daily_review_count"
+        ],
+        "title": "ConfigResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ReviewAction": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "title": "Action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "ReviewAction"
+      },
+      "SectionCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "SectionCreate"
+      },
+      "SectionRename": {
+        "properties": {
+          "old_name": {
+            "type": "string",
+            "title": "Old Name"
+          },
+          "new_name": {
+            "type": "string",
+            "title": "New Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "old_name",
+          "new_name"
+        ],
+        "title": "SectionRename"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
