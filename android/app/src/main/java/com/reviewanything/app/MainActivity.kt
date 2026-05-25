@@ -5,10 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,8 +49,8 @@ class MainActivity : ComponentActivity() {
 
 sealed class Screen(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Review : Screen("review", "复习", Icons.Default.Home)
-    object Upload : Screen("upload", "上传", Icons.Default.Upload)
-    object Notes : Screen("notes", "笔记", Icons.Default.Folder)
+    object Upload : Screen("upload", "上传", Icons.Default.CloudUpload)
+    object Notes : Screen("notes", "笔记", Icons.Default.Menu)
     object Settings : Screen("settings", "设置", Icons.Default.Settings)
 }
 

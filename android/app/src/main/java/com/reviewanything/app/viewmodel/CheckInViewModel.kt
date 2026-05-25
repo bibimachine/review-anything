@@ -6,6 +6,7 @@ import com.reviewanything.app.data.db.AppDatabase
 import com.reviewanything.app.data.model.CheckIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,7 +28,7 @@ class CheckInViewModel(private val db: AppDatabase) : ViewModel() {
 
     fun loadCheckIns() {
         viewModelScope.launch {
-            val all = db.checkInDao().getAllCheckIns()
+            val all = db.checkInDao().getAllCheckIns().first()
             val dates = all.map { it.checkinDate }.toSortedSet()
             _checkInDates.value = dates
             _checkedToday.value = dates.contains(today())
