@@ -2,6 +2,7 @@ package com.reviewanything.app.data.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["chunkId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["chunkId"])]
 )
 data class ReviewItem(
     @PrimaryKey(autoGenerate = true)
