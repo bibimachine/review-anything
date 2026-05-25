@@ -60,21 +60,106 @@ jobs:
           cache: 'npm'
           cache-dependency-path: web/frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: Build frontend
         run: |
           cd web/frontend
           npm ci
-
-      - name: Build
-        run: |
-          cd web/frontend
           npm run build
 
-      - name: Package static files
+      - name: Package full Web app
         run: |
-          mkdir -p artifacts
-          cd web/frontend/dist
-          zip -r ../../../artifacts/ReviewAnything-Web-${{ github.ref_name || github.event.inputs.tag }}.zip .
+          VERSION="${{ github.ref_name || github.event.inputs.tag }}"
+          mkdir -p artifacts/review-anything-web
+
+          # 复制后端代码（排除 .venv 和缓存）
+          cp -r web/backend artifacts/review-anything-web/backend
+          rm -rf artifacts/review-anything-web/backend/.venv
+          rm -rf artifacts/review-anything-web/backend/__pycache__
+          rm -rf artifacts/review-anything-web/backend/app/__pycache__
+          rm -rf artifacts/review-anything-web/backend/app/routers/__pycache__
+          rm -rf artifacts/review-anything-web/backend/app/services/__pycache__
+          rm -f artifacts/review-anything-web/backend/*.db*
+
+          # 复制前端构建产物
+          mkdir -p artifacts/review-anything-web/frontend
+          cp -r web/frontend/dist artifacts/review-anything-web/frontend/dist
+
+          # 创建启动脚本
+          cat > artifacts/review-anything-web/start.sh << 'SCRIPT'
+          #!/bin/bash
+          set -e
+          SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+          cd "$SCRIPT_DIR/backend"
+          if ! command -v uv &> /dev/null; then
+            echo "请先安装 uv: pip install uv"
+            exit 1
+          fi
+          if [ ! -d ".venv" ]; then
+            echo "首次运行，正在安装依赖..."
+            uv sync
+          fi
+          echo "启动 Review Anything Web 服务..."
+          echo "浏览器访问: http://localhost:8000"
+          uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+          SCRIPT
+          chmod +x artifacts/review-anything-web/start.sh
+
+          cat > artifacts/review-anything-web/start.bat << 'SCRIPT'
+          @echo off
+          setlocal
+          set SCRIPT_DIR=%~dp0
+          cd /d "%SCRIPT_DIR%backend"
+          where uv >nul 2>nul
+          if errorlevel 1 (
+            echo 请先安装 uv: pip install uv
+            pause
+            exit /b 1
+          )
+          if not exist ".venv" (
+            echo 首次运行，正在安装依赖...
+            uv sync
+          )
+          echo 启动 Review Anything Web 服务...
+          echo 浏览器访问: http://localhost:8000
+          uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+          pause
+          SCRIPT
+
+          # 创建 README
+          cat > artifacts/review-anything-web/README.txt << 'README'
+          Review Anything - Web 版
+          ==========================
+
+          前置要求
+          --------
+          - Python 3.12 或更高版本
+          - uv 工具 (pip install uv)
+
+          启动方式
+          --------
+          Linux / Mac:
+            ./start.sh
+
+          Windows:
+            双击 start.bat 或在命令行运行 start.bat
+
+          首次启动会自动创建虚拟环境并安装依赖，请保持网络畅通。
+
+          启动后浏览器访问: http://localhost:8000
+
+          使用步骤
+          --------
+          1. 首次打开会弹出配置窗口，填写 DeepSeek / OpenAI 等 API 信息
+             （也可点击「暂不配置」使用本地规则生成复习卡片）
+          2. 切换到「笔记管理」页，上传 ZIP 格式的 Markdown 笔记
+          3. 回到「每日复习」页，选择范围后点击「开始复习」
+          4. 左侧边栏可以打卡，记录你的坚持天数
+
+          项目地址: https://github.com/bibimachine/review-anything
+          README
+
+          cd artifacts
+          zip -r "ReviewAnything-Web-${VERSION}.zip" review-anything-web
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

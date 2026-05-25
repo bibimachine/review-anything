@@ -26,46 +26,88 @@
 
 ---
 
-## 🖼️ 界面预览
+## 📦 下载安装
 
-> 截图占位，欢迎补充实际运行截图
-
-| Web (React) | Android (Compose) | Windows (WPF) |
-|-------------|-------------------|---------------|
-| 待补充 | 待补充 | 待补充 |
+| 平台 | 下载 | 说明 |
+|------|------|------|
+| **Web** | [Releases](https://github.com/bibimachine/review-anything/releases) | 解压后 `./start.sh` 一键启动 |
+| **Android** | [Releases](https://github.com/bibimachine/review-anything/releases) | 下载 APK 直接安装 |
+| **Windows** | [Releases](https://github.com/bibimachine/review-anything/releases) | 解压后运行 EXE |
 
 ---
 
 ## 🚀 快速开始
 
-### Web 版
+### Web 版（推荐，功能最全）
+
+**前置要求**：Python 3.12+、uv (`pip install uv`)
 
 ```bash
-cd web
+# 1. 从 Releases 下载 Web 版 ZIP，解压
+cd review-anything-web
+
+# 2. 启动（Linux/Mac）
 ./start.sh
+
+# 3. 浏览器访问 http://localhost:8000
 ```
-- 前端: http://localhost:5173
-- 后端 API: http://localhost:8000
-- API 文档: http://localhost:8000/docs
+
+Windows 用户直接双击 `start.bat`。首次启动会自动安装依赖，请保持网络畅通。
 
 ### Android 版
 
 ```bash
-cd android
-export ANDROID_SDK_ROOT=$HOME/android-sdk
-export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-./gradlew assembleDebug
+# 从 Releases 下载 APK，安装到手机
+# 或使用 adb
+adb install ReviewAnything-Android-v0.1.x.apk
 ```
-APK 输出: `android/app/build/outputs/apk/debug/app-debug.apk`
 
 ### Windows 版
 
-> ⚠️ WPF 需在 Windows 环境编译运行，WSL 中仅能编写代码
-
 ```bash
-cd windows
-dotnet build ReviewAnything.sln
+# 从 Releases 下载 ZIP，解压后运行 ReviewAnything.exe
 ```
+
+---
+
+## 📖 使用教程
+
+### 第一步：配置 LLM（可选）
+
+首次打开 Web 或 Windows 版本会弹出配置窗口：
+
+| 配置项 | 示例值 |
+|--------|--------|
+| API Base URL | `https://api.deepseek.com` 或 `https://api.openai.com/v1` |
+| API Key | 你的 API Key |
+| 模型名称 | `deepseek-chat` / `gpt-4` 等 |
+| 每日复习数量 | 默认 10 题 |
+
+> 💡 点击「暂不配置」也能使用，系统会用本地规则生成基础复习卡片（效果不如 LLM）。
+
+### 第二步：上传笔记
+
+1. 切换到「笔记管理」页
+2. 将你的 Markdown 笔记打包成 **ZIP 文件**
+3. 拖拽或点击上传
+4. 系统会自动：解压 → 按标题分块 → 生成 QA 复习卡片
+
+> 📁 ZIP 内的文件夹名会被识别为「板块」，方便按主题复习。
+
+### 第三步：开始复习
+
+1. 回到「每日复习」页
+2. 选择复习范围（全部 / 某个板块 / 随机）
+3. 点击「开始复习」
+4. 看问题 → 回忆答案 → 点击「查看答案」→ 标记「记住了」或「忘记了」
+
+**间隔重复算法**：
+- ✅ 记住 → 1天 → 3天 → 7天 → 14天 → 30天
+- ❌ 忘记 → 1小时后再次复习
+
+### 第四步：坚持打卡
+
+左侧边栏有打卡按钮和日历，记录你的复习坚持天数 🔥
 
 ---
 
@@ -97,7 +139,7 @@ dotnet build ReviewAnything.sln
 | 维度 | Web | Android | Windows |
 |------|-----|---------|---------|
 | UI | React 18 + Tailwind CSS | Jetpack Compose | WPF (XAML) |
-| 状态管理 | React Hooks + useState | ViewModel + StateFlow | MVVM + INotifyPropertyChanged |
+| 状态管理 | React Hooks | ViewModel + StateFlow | MVVM + INotifyPropertyChanged |
 | 本地存储 | SQLite (后端) | Room (SQLite) | EF Core + SQLite |
 | 网络 | Axios + SSE | Retrofit + OkHttp | HttpClient |
 | 构建工具 | Vite | Gradle | .NET SDK |
@@ -110,7 +152,7 @@ dotnet build ReviewAnything.sln
 review-anything/
 ├── web/                    # Web 全栈应用
 │   ├── backend/            # FastAPI + SQLAlchemy + SQLite
-│   │   ├── app/routers/    # REST API 路由 (config, notes, review, checkin)
+│   │   ├── app/routers/    # REST API 路由
 │   │   ├── app/services/   # LLM调用、Markdown解析、ZIP解压
 │   │   └── pyproject.toml  # Python 依赖
 │   └── frontend/           # React 18 + Vite + Tailwind CSS
@@ -126,16 +168,16 @@ review-anything/
 │
 ├── windows/                # Windows 桌面应用
 │   └── ReviewAnything/
-│       ├── Models/         # 5个 EF Core 实体
+│       ├── Models/         # EF Core 实体
 │       ├── Services/       # DbContext + LLM + Review + 解析
 │       ├── ViewModels/     # MVVM 视图模型
 │       └── Views/          # MainWindow + 5个 Page
 │
 ├── shared/                 # 共用资源
-│   ├── api-spec/           # OpenAPI 规范 (从 FastAPI 导出)
+│   ├── api-spec/           # OpenAPI 规范
 │   └── db-schema/          # SQLite 表结构定义
 │
-└── .gitignore              # 已配置 node_modules, .venv, bin, obj 等
+└── .github/workflows/      # CI/CD 自动构建 Release
 ```
 
 ---
@@ -179,34 +221,40 @@ review-anything/
 
 ---
 
-## 📖 详细文档
+## ⚙️ 开发指南
 
-- [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) — 完整开发指南、API 文档、架构设计
+### 启动 Web 开发环境
 
----
+```bash
+cd web/backend && uv run uvicorn app.main:app --reload   # 后端 :8000
+cd web/frontend && npm run dev                            # 前端 :5173
+```
 
-## ⚙️ LLM 配置
+### 启动 Android
 
-支持任意 OpenAI 兼容 API，默认推荐 **DeepSeek**:
+```bash
+cd android
+./gradlew assembleDebug
+```
 
-| 配置项 | 示例值 |
-|--------|--------|
-| API Base URL | `https://api.deepseek.com` |
-| API Key | 你的 DeepSeek API Key |
-| 模型名称 | `deepseek-v4-pro` |
+### 启动 Windows
 
-> 后端会自动拼接 `/chat/completions` 路径，兼容带后缀和不带后缀的 URL。
+> ⚠️ WPF 需在 Windows 环境编译运行
+
+```bash
+cd windows
+dotnet run --project ReviewAnything/ReviewAnything.csproj
+```
 
 ---
 
 ## 📝 待完善
 
-- [ ] 各平台应用图标 / 启动图
-- [ ] GitHub Actions CI/CD (Android APK / Windows EXE 自动构建)
+- [ ] 各平台应用图标 / 启动图精细化
 - [ ] Android 发布签名 (keystore)
 - [ ] Windows 安装包 (MSI / Setup.exe)
 - [ ] 单元测试覆盖
-- [ ] 实际运行截图替换占位图
+- [ ] 支持更多笔记格式 (.txt, .org)
 
 ---
 
