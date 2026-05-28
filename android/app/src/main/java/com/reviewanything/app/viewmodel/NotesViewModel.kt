@@ -11,41 +11,41 @@ import kotlinx.coroutines.launch
 
 class NotesViewModel(private val db: AppDatabase) : ViewModel() {
 
+    private val _allNotes = MutableStateFlow<Map<String, List<Note>>>(emptyMap())
+    val allNotes: StateFlow<Map<String, List<Note>>> = _allNotes
+
     private val _sections = MutableStateFlow<List<String>>(emptyList())
     val sections: StateFlow<List<String>> = _sections
 
-    private val _notes = MutableStateFlow<List<Note>>(emptyList())
-    val notes: StateFlow<List<Note>> = _notes
-
-    private val _selectedSection = MutableStateFlow<String?>(null)
+    private val _selectedNote = MutableStateFlow<Note?>(null)
+    val selectedNote: StateFlow<Note?> = _selectedNote
 
     init {
-        loadSections()
+        loadAll()
     }
 
-    fun loadSections() {
+    fun loadAll() {
         viewModelScope.launch {
-            db.noteDao().getSections().collectLatest { list ->
-                // 也包含占位符板块
-                val placeholderSections = db.noteDao().getPlaceholderSections()
-                _sections.value = (list + placeholderSections).distinct().sorted()
+            db.noteDao().getAllNotes().collectLatest { notes ->
+                val grouped = notes.groupBy { it.section }
+                    .mapValues { (_, list) -> list.sortedBy { it.fileName } }
+                _allNotes.value = grouped
+                _sections.value = grouped.keys.sorted()
             }
         }
     }
 
-    fun selectSection(section: String) {
-        _selectedSection.value = section
-        viewModelScope.launch {
-            db.noteDao().getNotesBySection(section).collectLatest {
-                _notes.value = it.filter { note -> note.fileName != "_placeholder" }
-            }
-        }
+    fun selectNote(note: Note?) {
+        _selectedNote.value = note
     }
 
     fun deleteNote(id: Int) {
         viewModelScope.launch {
             db.noteDao().deleteById(id)
-            loadSections()
+            if (_selectedNote.value?.id == id) {
+                _selectedNote.value = null
+            }
+            loadAll()
         }
     }
 
@@ -64,7 +64,7 @@ class NotesViewModel(private val db: AppDatabase) : ViewModel() {
                     contentHash = ""
                 )
             )
-            loadSections()
+            loadAll()
         }
         return true
     }

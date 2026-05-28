@@ -29,4 +29,7 @@ interface NoteDao {
 
     @Query("SELECT DISTINCT section FROM notes WHERE fileName = '_placeholder'")
     suspend fun getPlaceholderSections(): List<String>
+
+    @Query("SELECT * FROM notes WHERE fileName != '_placeholder' ORDER BY section, fileName")
+    fun getAllNotes(): Flow<List<Note>>
 }

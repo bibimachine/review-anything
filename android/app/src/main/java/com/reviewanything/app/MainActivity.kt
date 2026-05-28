@@ -104,10 +104,9 @@ fun MainApp() {
                 UploadScreen(viewModel)
             }
             composable(Screen.Notes.route) {
-                val viewModel: NotesViewModel = viewModel(
-                    factory = NotesViewModelFactory(db)
-                )
-                NotesScreen(viewModel)
+                val notesVm: NotesViewModel = viewModel(factory = NotesViewModelFactory(db))
+                val uploadVm: UploadViewModel = viewModel(factory = UploadViewModelFactory(db))
+                NotesScreen(notesVm, uploadVm)
             }
             composable(Screen.Settings.route) {
                 val viewModel: SettingsViewModel = viewModel(
