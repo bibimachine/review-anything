@@ -18,19 +18,48 @@ fun NotesScreen(viewModel: NotesViewModel) {
     val sections by viewModel.sections.collectAsState()
     val notes by viewModel.notes.collectAsState()
     var selectedSection by remember { mutableStateOf<String?>(null) }
+    var newSectionName by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // 板块选择
+        // 标题
         Text("笔记管理", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(16.dp))
 
+        // 新建板块
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = newSectionName,
+                onValueChange = { newSectionName = it },
+                label = { Text("新建板块") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    if (viewModel.createSection(newSectionName)) {
+                        newSectionName = ""
+                    }
+                }
+            ) {
+                Text("创建")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 板块标签
         if (sections.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                Text("暂无笔记", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("暂无笔记，请创建板块或上传笔记", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             return
         }
 
-        // 板块标签
         ScrollableTabRow(
             selectedTabIndex = sections.indexOf(selectedSection).coerceAtLeast(0),
             modifier = Modifier.fillMaxWidth()

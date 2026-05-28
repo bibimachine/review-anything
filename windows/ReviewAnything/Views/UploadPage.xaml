@@ -7,18 +7,25 @@
         <vm:UploadViewModel />
     </Page.DataContext>
     <Grid Margin="32">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="500">
             <TextBlock Text="📁" FontSize="64" HorizontalAlignment="Center"/>
             <TextBlock Text="上传笔记" FontSize="24" FontWeight="Bold" 
                        HorizontalAlignment="Center" Margin="0,16"/>
             <TextBlock Text="选择 ZIP 文件上传，支持 Markdown 笔记"
-                       Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                       Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,0,0,24"
+                       TextWrapping="Wrap" TextAlignment="Center"/>
+
+            <!-- 板块输入 -->
+            <TextBlock Text="上传到板块（留空使用 ZIP 内文件夹名）" Foreground="#374151" Margin="0,0,0,4"/>
+            <TextBox Text="{Binding Section, UpdateSourceTrigger=PropertyChanged}" 
+                     Padding="8" Margin="0,0,0,16"/>
 
             <Button Content="选择 ZIP 文件" Padding="32,12" FontSize="16"
                     Command="{Binding UploadCommand}"/>
 
             <TextBlock Text="{Binding Status}" Margin="0,16"
-                       HorizontalAlignment="Center" Foreground="#6B7280"/>
+                       HorizontalAlignment="Center" Foreground="#6B7280"
+                       TextWrapping="Wrap" TextAlignment="Center"/>
 
             <ProgressBar Width="300" Height="4" Margin="0,8"
                          Value="{Binding ProgressPercent}" Maximum="100"

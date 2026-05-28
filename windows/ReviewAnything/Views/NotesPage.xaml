@@ -10,16 +10,27 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <TextBlock Text="笔记管理" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
 
+        <!-- 新建板块 -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBox x:Name="NewSectionText" Width="200" Padding="8" Margin="0,0,8,0"
+                     VerticalContentAlignment="Center"/>
+            <Button Content="➕ 新建板块" Padding="16,8"
+                    Command="{Binding CreateSectionCommand}"
+                    CommandParameter="{Binding Text, ElementName=NewSectionText}"
+                    Click="NewSectionButton_Click"/>
+        </StackPanel>
+
         <!-- 板块选择 -->
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding Sections}">
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Sections}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal"/>
+                    <WrapPanel/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
@@ -32,11 +43,12 @@
         </ItemsControl>
 
         <!-- 笔记列表 -->
-        <DataGrid Grid.Row="2" ItemsSource="{Binding Notes}"
+        <DataGrid Grid.Row="3" ItemsSource="{Binding Notes}"
                   AutoGenerateColumns="False" IsReadOnly="True"
                   Margin="0,16,0,0">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="文件名" Binding="{Binding FileName}" Width="*"/>
+                <DataGridTextColumn Header="板块" Binding="{Binding Section}" Width="120"/>
                 <DataGridTextColumn Header="内容预览" Binding="{Binding Content}" Width="2*"/>
                 <DataGridTemplateColumn Header="操作" Width="80">
                     <DataGridTemplateColumn.CellTemplate>

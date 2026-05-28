@@ -10,7 +10,8 @@ namespace ReviewAnything.ViewModels;
 
 public class UploadViewModel : INotifyPropertyChanged
 {
-    private readonly AppDbContext _db = new();
+    private AppDbContext Db => _db ??= new AppDbContext();
+    private AppDbContext? _db;
     private readonly LlmService _llmService = new();
 
     private string _status = "选择 ZIP 文件上传";
@@ -32,6 +33,13 @@ public class UploadViewModel : INotifyPropertyChanged
     {
         get => _total;
         set { _total = value; OnPropertyChanged(); OnPropertyChanged(nameof(ProgressPercent)); }
+    }
+
+    private string _section = "";
+    public string Section
+    {
+        get => _section;
+        set { _section = value; OnPropertyChanged(); }
     }
 
     public double ProgressPercent => Total > 0 ? (double)Current / Total * 100 : 0;
@@ -69,7 +77,9 @@ public class UploadViewModel : INotifyPropertyChanged
 
             foreach (var (fileName, content) in files)
             {
-                var section = fileName.Split('/', '\\').FirstOrDefault() ?? "未分类";
+                var section = string.IsNullOrWhiteSpace(Section)
+                    ? (fileName.Split('/', '\\').FirstOrDefault() ?? "未分类")
+                    : Section.Trim();
                 var note = new Note
                 {
                     FilePath = fileName,
@@ -78,8 +88,8 @@ public class UploadViewModel : INotifyPropertyChanged
                     Content = content,
                     ContentHash = MarkdownParser.ComputeHash(content)
                 };
-                _db.Notes.Add(note);
-                await _db.SaveChangesAsync();
+                Db.Notes.Add(note);
+                await Db.SaveChangesAsync();
 
                 var chunks = MarkdownParser.Parse(content);
                 foreach (var chunkData in chunks)
@@ -94,11 +104,11 @@ public class UploadViewModel : INotifyPropertyChanged
                         ContentHash = MarkdownParser.ComputeHash(chunkData.Content),
                         HeadingPath = chunkData.HeadingPath
                     };
-                    _db.Chunks.Add(chunk);
-                    await _db.SaveChangesAsync();
+                    Db.Chunks.Add(chunk);
+                    await Db.SaveChangesAsync();
 
                     // LLM 生成 QA
-                    var config = _db.Configs.FirstOrDefault();
+                    var config = Db.Configs.FirstOrDefault();
                     if (config?.ApiKey != null)
                     {
                         try
@@ -107,7 +117,7 @@ public class UploadViewModel : INotifyPropertyChanged
                                 chunkData.Content, chunkData.HeadingPath, config);
                             foreach (var (q, a) in qaList)
                             {
-                                _db.ReviewItems.Add(new ReviewItem
+                                Db.ReviewItems.Add(new ReviewItem
                                 {
                                     ChunkId = chunk.Id,
                                     Question = q,
@@ -124,7 +134,7 @@ public class UploadViewModel : INotifyPropertyChanged
                     {
                         AddFallbackReviewItem(chunk.Id, chunkData);
                     }
-                    await _db.SaveChangesAsync();
+                    await Db.SaveChangesAsync();
                 }
             }
 
@@ -141,7 +151,7 @@ public class UploadViewModel : INotifyPropertyChanged
         var question = string.IsNullOrWhiteSpace(chunkData.HeadingPath)
             ? "请解释这段内容的核心要点？"
             : $"请解释「{chunkData.HeadingPath}」的核心要点？";
-        _db.ReviewItems.Add(new ReviewItem
+        Db.ReviewItems.Add(new ReviewItem
         {
             ChunkId = chunkId,
             Question = question,

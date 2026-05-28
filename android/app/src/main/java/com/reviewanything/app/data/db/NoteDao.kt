@@ -26,4 +26,7 @@ interface NoteDao {
 
     @Query("DELETE FROM notes")
     suspend fun deleteAll()
+
+    @Query("SELECT DISTINCT section FROM notes WHERE file_name = '_placeholder'")
+    suspend fun getPlaceholderSections(): List<String>
 }

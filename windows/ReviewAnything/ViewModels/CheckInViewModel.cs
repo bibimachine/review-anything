@@ -8,7 +8,8 @@ namespace ReviewAnything.ViewModels;
 
 public class CheckInViewModel : INotifyPropertyChanged
 {
-    private readonly AppDbContext _db = new();
+    private AppDbContext Db => _db ??= new AppDbContext();
+    private AppDbContext? _db;
 
     private int _streak;
     public int Streak
@@ -41,7 +42,7 @@ public class CheckInViewModel : INotifyPropertyChanged
 
     private void LoadCheckIns()
     {
-        var dates = _db.CheckIns.Select(c => c.CheckinDate).ToList();
+        var dates = Db.CheckIns.Select(c => c.CheckinDate).ToList();
         CheckInDates = dates;
         CheckedToday = dates.Contains(DateTime.Now.ToString("yyyy-MM-dd"));
         Streak = CalculateStreak(dates.ToHashSet());
@@ -50,10 +51,10 @@ public class CheckInViewModel : INotifyPropertyChanged
     private async Task CheckInAsync()
     {
         var today = DateTime.Now.ToString("yyyy-MM-dd");
-        if (!_db.CheckIns.Any(c => c.CheckinDate == today))
+        if (!Db.CheckIns.Any(c => c.CheckinDate == today))
         {
-            _db.CheckIns.Add(new CheckIn { CheckinDate = today });
-            await _db.SaveChangesAsync();
+            Db.CheckIns.Add(new CheckIn { CheckinDate = today });
+            await Db.SaveChangesAsync();
             LoadCheckIns();
         }
     }

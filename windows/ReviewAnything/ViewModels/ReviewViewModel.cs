@@ -9,7 +9,8 @@ namespace ReviewAnything.ViewModels;
 
 public class ReviewViewModel : INotifyPropertyChanged
 {
-    private readonly ReviewService _reviewService = new(new AppDbContext());
+    private ReviewService ReviewSvc => _reviewSvc ??= new ReviewService(new AppDbContext());
+    private ReviewService? _reviewSvc;
 
     public ObservableCollection<ReviewItem> Items { get; } = new();
 
@@ -60,7 +61,7 @@ public class ReviewViewModel : INotifyPropertyChanged
         IsEmpty = false;
         try
         {
-            var items = await _reviewService.GetDueItemsAsync(10);
+            var items = await ReviewSvc.GetDueItemsAsync(10);
             foreach (var item in items) Items.Add(item);
             IsEmpty = items.Count == 0;
         }
@@ -80,9 +81,9 @@ public class ReviewViewModel : INotifyPropertyChanged
             if (item == null) return;
 
             if (remembered)
-                await _reviewService.MarkRememberedAsync(item);
+                await ReviewSvc.MarkRememberedAsync(item);
             else
-                await _reviewService.MarkForgottenAsync(item);
+                await ReviewSvc.MarkForgottenAsync(item);
 
             ShowAnswer = false;
             CurrentIndex++;

@@ -17,11 +17,15 @@ fun UploadScreen(viewModel: UploadViewModel) {
     val state by viewModel.state.collectAsState()
     val progress by viewModel.progress.collectAsState()
     val context = LocalContext.current
+    var section by remember { mutableStateOf("") }
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { viewModel.uploadZip(context, it) }
+        uri?.let {
+            val sec = section.trim().takeIf { it.isNotEmpty() }
+            viewModel.uploadZip(context, it, sec)
+        }
     }
 
     Column(
@@ -42,6 +46,17 @@ fun UploadScreen(viewModel: UploadViewModel) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 板块输入
+                OutlinedTextField(
+                    value = section,
+                    onValueChange = { section = it },
+                    label = { Text("上传到板块（留空使用 ZIP 内文件夹名）") },
+                    modifier = Modifier.fillMaxWidth(0.85f),
+                    singleLine = true
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = { launcher.launch("application/zip") },
@@ -84,7 +99,7 @@ fun UploadScreen(viewModel: UploadViewModel) {
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                Button(onClick = { viewModel.reset() }) {
+                Button(onClick = { viewModel.reset(); section = "" }) {
                     Text("继续上传")
                 }
             }

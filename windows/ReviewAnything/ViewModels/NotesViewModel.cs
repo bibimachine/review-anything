@@ -10,7 +10,8 @@ namespace ReviewAnything.ViewModels;
 
 public class NotesViewModel : INotifyPropertyChanged
 {
-    private readonly AppDbContext _db = new();
+    private AppDbContext Db => _db ??= new AppDbContext();
+    private AppDbContext? _db;
 
     public ObservableCollection<string> Sections { get; } = new();
     public ObservableCollection<Note> Notes { get; } = new();
@@ -29,21 +30,35 @@ public class NotesViewModel : INotifyPropertyChanged
 
     public ICommand SelectSectionCommand { get; }
     public ICommand DeleteCommand { get; }
+    public ICommand CreateSectionCommand { get; }
 
     public NotesViewModel()
     {
         LoadSections();
         SelectSectionCommand = new RelayParamCommand<string>(s => SelectedSection = s);
         DeleteCommand = new RelayParamCommand<int>(async id => await DeleteAsync(id));
+        CreateSectionCommand = new RelayParamCommand<string>(async name => await CreateSectionAsync(name));
     }
 
     private async void LoadSections()
     {
         try
         {
-            var sections = await _db.Notes.Select(n => n.Section).Distinct().ToListAsync();
+            var sections = await Db.Notes
+                .Where(n => n.FileName != "_placeholder")
+                .Select(n => n.Section)
+                .Distinct()
+                .ToListAsync();
+            // 也包含占位符板块的 section
+            var placeholderSections = await Db.Notes
+                .Where(n => n.FileName == "_placeholder")
+                .Select(n => n.Section)
+                .Distinct()
+                .ToListAsync();
+            var all = sections.Concat(placeholderSections).Distinct().OrderBy(s => s).ToList();
+
             Sections.Clear();
-            foreach (var s in sections) Sections.Add(s);
+            foreach (var s in all) Sections.Add(s);
         }
         catch
         {
@@ -53,20 +68,43 @@ public class NotesViewModel : INotifyPropertyChanged
 
     private async void LoadNotes(string section)
     {
-        var notes = await _db.Notes.Where(n => n.Section == section).ToListAsync();
+        var notes = await Db.Notes
+            .Where(n => n.Section == section && n.FileName != "_placeholder")
+            .ToListAsync();
         Notes.Clear();
         foreach (var n in notes) Notes.Add(n);
     }
 
     private async Task DeleteAsync(int id)
     {
-        var note = await _db.Notes.FindAsync(id);
+        var note = await Db.Notes.FindAsync(id);
         if (note != null)
         {
-            _db.Notes.Remove(note);
-            await _db.SaveChangesAsync();
+            Db.Notes.Remove(note);
+            await Db.SaveChangesAsync();
             if (SelectedSection != null) LoadNotes(SelectedSection);
+            LoadSections();
         }
+    }
+
+    private async Task CreateSectionAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var trimmed = name.Trim();
+        if (Sections.Contains(trimmed)) return;
+
+        // 插入占位 Note 来创建空板块
+        Db.Notes.Add(new Note
+        {
+            FilePath = "",
+            FileName = "_placeholder",
+            Section = trimmed,
+            Content = "",
+            ContentHash = ""
+        });
+        await Db.SaveChangesAsync();
+        Sections.Add(trimmed);
+        SelectedSection = trimmed;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
