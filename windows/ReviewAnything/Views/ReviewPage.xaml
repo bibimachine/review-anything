@@ -3,17 +3,26 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:ReviewAnything.ViewModels"
       Title="ReviewPage">
-    <Page.DataContext>
-        <vm:ReviewViewModel />
-    </Page.DataContext>
     <Grid Margin="32">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- 打卡状态 -->
+        <Border Grid.Row="0" CornerRadius="12" Padding="16" Margin="0,0,0,16"
+                Background="{Binding CheckedToday, Converter={StaticResource BoolToBrushConverter}}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding CheckedToday, Converter={StaticResource BoolToCheckInTextConverter}}"
+                           FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Streak, StringFormat=' 🔥 连续打卡 {0} 天'}"
+                           FontSize="14" VerticalAlignment="Center" Margin="8,0,0,0"/>
+            </StackPanel>
+        </Border>
+
         <!-- 空状态：无笔记 -->
-        <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock Text="📭" FontSize="64" HorizontalAlignment="Center"/>
             <TextBlock Text="暂无复习内容" FontSize="24" FontWeight="Bold" Margin="0,16" HorizontalAlignment="Center"/>
@@ -24,7 +33,7 @@
         </StackPanel>
 
         <!-- 空闲状态：有笔记但尚未开始 -->
-        <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Visibility="{Binding IsIdle, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TextBlock Text="📚" FontSize="64" HorizontalAlignment="Center"/>
             <TextBlock Text="准备开始复习" FontSize="24" FontWeight="Bold" Margin="0,16" HorizontalAlignment="Center"/>
@@ -35,7 +44,7 @@
         </StackPanel>
 
         <!-- 复习中 / 完成 -->
-        <Grid Grid.Row="1"
+        <Grid Grid.Row="2"
               Visibility="{Binding IsIdle, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -61,6 +70,7 @@
                         Visibility="{Binding IsFinished, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock Text="🎉" FontSize="64" HorizontalAlignment="Center"/>
                 <TextBlock Text="今日复习完成！" FontSize="24" FontWeight="Bold" Margin="0,16" HorizontalAlignment="Center"/>
+                <TextBlock Text="已自动打卡 ✅" FontSize="14" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,0,0,16"/>
                 <Button Content="再来一组" Padding="24,12" FontSize="16"
                         Command="{Binding RestartCommand}" HorizontalAlignment="Center" Margin="0,16"/>
             </StackPanel>

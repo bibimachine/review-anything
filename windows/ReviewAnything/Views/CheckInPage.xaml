@@ -3,9 +3,6 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:ReviewAnything.ViewModels"
       Title="CheckInPage">
-    <Page.DataContext>
-        <vm:CheckInViewModel />
-    </Page.DataContext>
     <Grid Margin="32">
         <StackPanel HorizontalAlignment="Center" MaxWidth="400">
             <!-- 打卡状态 -->

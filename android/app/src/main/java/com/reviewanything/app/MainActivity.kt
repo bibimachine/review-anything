@@ -93,7 +93,7 @@ fun MainApp() {
         ) {
             composable(Screen.Review.route) {
                 val viewModel: ReviewViewModel = viewModel(
-                    factory = ReviewViewModelFactory(ReviewRepository(db.reviewItemDao()))
+                    factory = ReviewViewModelFactory(ReviewRepository(db.reviewItemDao()), db)
                 )
                 ReviewScreen(viewModel)
             }

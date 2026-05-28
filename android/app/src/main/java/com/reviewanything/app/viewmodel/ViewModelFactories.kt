@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import com.reviewanything.app.data.db.AppDatabase
 import com.reviewanything.app.data.repository.ReviewRepository
 
-class ReviewViewModelFactory(private val repository: ReviewRepository) : ViewModelProvider.Factory {
+class ReviewViewModelFactory(private val repository: ReviewRepository, private val db: AppDatabase) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ReviewViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ReviewViewModel(repository) as T
+            return ReviewViewModel(repository, db.checkInDao()) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

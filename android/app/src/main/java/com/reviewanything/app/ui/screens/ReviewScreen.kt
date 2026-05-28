@@ -33,6 +33,13 @@ fun ReviewScreen(
     val stats by viewModel.stats.collectAsState()
     val dailyCount by viewModel.dailyCount.collectAsState()
 
+    // 复习完成后刷新打卡状态
+    LaunchedEffect(finished) {
+        if (finished) {
+            checkInViewModel.loadCheckIns()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()

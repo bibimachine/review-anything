@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
 using ReviewAnything.Models;
 using ReviewAnything.Services;
@@ -48,7 +49,7 @@ public class UploadViewModel : INotifyPropertyChanged
 
     public UploadViewModel()
     {
-        UploadCommand = new RelayCommand(async () => await UploadAsync());
+        UploadCommand = new AsyncRelayCommand(UploadAsync);
     }
 
     private async Task UploadAsync()
@@ -64,14 +65,14 @@ public class UploadViewModel : INotifyPropertyChanged
             if (dialog.ShowDialog() != true) return;
 
             Status = "解压中...";
-            var files = ZipExtractor.Extract(dialog.FileName);
+            var files = await Task.Run(() => ZipExtractor.Extract(dialog.FileName));
             if (files.Count == 0)
             {
                 Status = "ZIP 中没有找到 Markdown 文件";
                 return;
             }
 
-            var allChunks = files.SelectMany(f => MarkdownParser.Parse(f.Content)).ToList();
+            var allChunks = await Task.Run(() => files.SelectMany(f => MarkdownParser.Parse(f.Content)).ToList());
             Total = allChunks.Count;
             Current = 0;
 
@@ -91,7 +92,7 @@ public class UploadViewModel : INotifyPropertyChanged
                 Db.Notes.Add(note);
                 await Db.SaveChangesAsync();
 
-                var chunks = MarkdownParser.Parse(content);
+                var chunks = await Task.Run(() => MarkdownParser.Parse(content));
                 foreach (var chunkData in chunks)
                 {
                     Current++;
@@ -108,7 +109,7 @@ public class UploadViewModel : INotifyPropertyChanged
                     await Db.SaveChangesAsync();
 
                     // LLM 生成 QA
-                    var config = Db.Configs.FirstOrDefault();
+                    var config = await Db.Configs.FirstOrDefaultAsync();
                     if (config?.ApiKey != null)
                     {
                         try

@@ -24,7 +24,7 @@ public class NotesViewModel : INotifyPropertyChanged
         {
             _selectedSection = value;
             OnPropertyChanged();
-            if (value != null) LoadNotes(value);
+            if (value != null) _ = LoadNotesAsync(value);
         }
     }
 
@@ -34,13 +34,13 @@ public class NotesViewModel : INotifyPropertyChanged
 
     public NotesViewModel()
     {
-        LoadSections();
+        _ = LoadSectionsAsync();
         SelectSectionCommand = new RelayParamCommand<string>(s => SelectedSection = s);
-        DeleteCommand = new RelayParamCommand<int>(async id => await DeleteAsync(id));
-        CreateSectionCommand = new RelayParamCommand<string>(async name => await CreateSectionAsync(name));
+        DeleteCommand = new AsyncRelayParamCommand<int>(DeleteAsync);
+        CreateSectionCommand = new AsyncRelayParamCommand<string>(CreateSectionAsync);
     }
 
-    private async void LoadSections()
+    private async Task LoadSectionsAsync()
     {
         try
         {
@@ -49,7 +49,6 @@ public class NotesViewModel : INotifyPropertyChanged
                 .Select(n => n.Section)
                 .Distinct()
                 .ToListAsync();
-            // 也包含占位符板块的 section
             var placeholderSections = await Db.Notes
                 .Where(n => n.FileName == "_placeholder")
                 .Select(n => n.Section)
@@ -66,7 +65,7 @@ public class NotesViewModel : INotifyPropertyChanged
         }
     }
 
-    private async void LoadNotes(string section)
+    private async Task LoadNotesAsync(string section)
     {
         var notes = await Db.Notes
             .Where(n => n.Section == section && n.FileName != "_placeholder")
@@ -82,8 +81,8 @@ public class NotesViewModel : INotifyPropertyChanged
         {
             Db.Notes.Remove(note);
             await Db.SaveChangesAsync();
-            if (SelectedSection != null) LoadNotes(SelectedSection);
-            LoadSections();
+            if (SelectedSection != null) await LoadNotesAsync(SelectedSection);
+            await LoadSectionsAsync();
         }
     }
 
@@ -93,18 +92,26 @@ public class NotesViewModel : INotifyPropertyChanged
         var trimmed = name.Trim();
         if (Sections.Contains(trimmed)) return;
 
-        // 插入占位 Note 来创建空板块
-        Db.Notes.Add(new Note
+        try
         {
-            FilePath = "",
-            FileName = "_placeholder",
-            Section = trimmed,
-            Content = "",
-            ContentHash = ""
-        });
-        await Db.SaveChangesAsync();
-        Sections.Add(trimmed);
-        SelectedSection = trimmed;
+            // 插入占位 Note 来创建空板块
+            Db.Notes.Add(new Note
+            {
+                FilePath = "",
+                FileName = "_placeholder",
+                Section = trimmed,
+                Content = "",
+                ContentHash = ""
+            });
+            await Db.SaveChangesAsync();
+            Sections.Add(trimmed);
+            SelectedSection = trimmed;
+        }
+        catch (Exception ex)
+        {
+            // 可以在这里添加错误状态属性来显示给用户
+            System.Diagnostics.Debug.WriteLine($"Create section failed: {ex.Message}");
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

@@ -3,9 +3,6 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:vm="clr-namespace:ReviewAnything.ViewModels"
       Title="SettingsPage">
-    <Page.DataContext>
-        <vm:SettingsViewModel />
-    </Page.DataContext>
     <ScrollViewer Margin="32">
         <StackPanel MaxWidth="600" HorizontalAlignment="Left">
             <TextBlock Text="⚙️ 设置" FontSize="24" FontWeight="Bold" Margin="0,0,0,24"/>

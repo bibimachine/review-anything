@@ -2,13 +2,20 @@ package com.reviewanything.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.reviewanything.app.data.db.CheckInDao
+import com.reviewanything.app.data.model.CheckIn
 import com.reviewanything.app.data.model.ReviewItem
 import com.reviewanything.app.data.repository.ReviewRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
-class ReviewViewModel(private val repository: ReviewRepository) : ViewModel() {
+class ReviewViewModel(
+    private val repository: ReviewRepository,
+    private val checkInDao: CheckInDao
+) : ViewModel() {
     private val _items = MutableStateFlow<List<ReviewItem>>(emptyList())
     val items: StateFlow<List<ReviewItem>> = _items
 
@@ -62,8 +69,18 @@ class ReviewViewModel(private val repository: ReviewRepository) : ViewModel() {
     private fun next() {
         if (_currentIndex.value + 1 >= _items.value.size) {
             _finished.value = true
+            autoCheckIn()
         } else {
             _currentIndex.value += 1
+        }
+    }
+
+    private fun autoCheckIn() {
+        viewModelScope.launch {
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            if (checkInDao.getCheckInByDate(today) == null) {
+                checkInDao.insert(CheckIn(checkinDate = today))
+            }
         }
     }
 

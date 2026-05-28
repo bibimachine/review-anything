@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
 using ReviewAnything.Models;
 using ReviewAnything.Services;
 
@@ -11,6 +12,8 @@ public class ReviewViewModel : INotifyPropertyChanged
 {
     private ReviewService ReviewSvc => _reviewSvc ??= new ReviewService(new AppDbContext());
     private ReviewService? _reviewSvc;
+    private AppDbContext Db => _db ??= new AppDbContext();
+    private AppDbContext? _db;
 
     public ObservableCollection<ReviewItem> Items { get; } = new();
 
@@ -35,6 +38,21 @@ public class ReviewViewModel : INotifyPropertyChanged
         set { _isEmpty = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsIdle)); }
     }
 
+    // 打卡状态
+    private int _streak;
+    public int Streak
+    {
+        get => _streak;
+        set { _streak = value; OnPropertyChanged(); }
+    }
+
+    private bool _checkedToday;
+    public bool CheckedToday
+    {
+        get => _checkedToday;
+        set { _checkedToday = value; OnPropertyChanged(); }
+    }
+
     public ReviewItem? CurrentItem => Items.Count > CurrentIndex ? Items[CurrentIndex] : null;
     public string ProgressText => Items.Count > 0 ? $"{CurrentIndex + 1} / {Items.Count}" : "";
     public bool IsFinished => Items.Count > 0 && CurrentIndex >= Items.Count;
@@ -48,11 +66,27 @@ public class ReviewViewModel : INotifyPropertyChanged
 
     public ReviewViewModel()
     {
-        StartCommand = new RelayCommand(async () => await LoadItemsAsync());
+        StartCommand = new AsyncRelayCommand(LoadItemsAsync);
         ShowAnswerCommand = new RelayCommand(() => ShowAnswer = true);
-        RememberCommand = new RelayCommand(async () => await MarkAsync(true));
-        ForgetCommand = new RelayCommand(async () => await MarkAsync(false));
+        RememberCommand = new AsyncRelayCommand(() => MarkAsync(true));
+        ForgetCommand = new AsyncRelayCommand(() => MarkAsync(false));
         RestartCommand = new RelayCommand(() => { CurrentIndex = 0; ShowAnswer = false; IsEmpty = false; Items.Clear(); });
+        _ = LoadCheckInStatusAsync();
+    }
+
+    private async Task LoadCheckInStatusAsync()
+    {
+        try
+        {
+            var dates = await Task.Run(() => Db.CheckIns.Select(c => c.CheckinDate).ToList());
+            CheckedToday = dates.Contains(DateTime.Now.ToString("yyyy-MM-dd"));
+            Streak = CalculateStreak(dates.ToHashSet());
+        }
+        catch
+        {
+            CheckedToday = false;
+            Streak = 0;
+        }
     }
 
     private async Task LoadItemsAsync()
@@ -71,6 +105,7 @@ public class ReviewViewModel : INotifyPropertyChanged
         }
         CurrentIndex = 0;
         ShowAnswer = false;
+        _ = LoadCheckInStatusAsync();
     }
 
     private async Task MarkAsync(bool remembered)
@@ -87,11 +122,45 @@ public class ReviewViewModel : INotifyPropertyChanged
 
             ShowAnswer = false;
             CurrentIndex++;
+
+            // 复习完成自动打卡
+            if (IsFinished)
+            {
+                await AutoCheckInAsync();
+            }
         }
         catch
         {
             // ignore db errors during review
         }
+    }
+
+    private async Task AutoCheckInAsync()
+    {
+        var today = DateTime.Now.ToString("yyyy-MM-dd");
+        if (!await Db.CheckIns.AnyAsync(c => c.CheckinDate == today))
+        {
+            Db.CheckIns.Add(new CheckIn { CheckinDate = today });
+            await Db.SaveChangesAsync();
+            await LoadCheckInStatusAsync();
+        }
+    }
+
+    private static int CalculateStreak(HashSet<string> dates)
+    {
+        if (dates.Count == 0) return 0;
+        var streak = 0;
+        var current = DateTime.Now;
+        while (true)
+        {
+            if (dates.Contains(current.ToString("yyyy-MM-dd")))
+            {
+                streak++;
+                current = current.AddDays(-1);
+            }
+            else break;
+        }
+        return streak;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
