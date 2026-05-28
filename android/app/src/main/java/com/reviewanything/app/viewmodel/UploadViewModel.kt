@@ -36,7 +36,8 @@ class UploadViewModel(private val db: AppDatabase) : ViewModel() {
                 var processed = 0
 
                 for ((fileName, content) in files) {
-                    val fileSection = section ?: fileName.substringBeforeLast(".", "未分类")
+                    val fileSection = section?.takeIf { it.isNotBlank() }
+                    ?: fileName.substringBeforeLast(".", "未分类")
                     val note = Note(
                         filePath = fileName,
                         fileName = fileName,
